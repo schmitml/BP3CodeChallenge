@@ -1,5 +1,7 @@
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Calendar;
 import java.util.HashMap;
 
@@ -12,32 +14,114 @@ public class Main {
 	private static HashMap<String, Pair<Integer, Integer>> tasksByAssignee;
 
 	public static void main(String[] args) {
-		// Initialial computation of instanceId and assignee information
+		// Initial computation of instanceId and assignee information
 		recentTasks = new HashMap<>();
 		tasksByAssignee = new HashMap<>();
 		parseJson();
 
-		// Pair<Integer, Integer> tasksRange =
-		// parseByDate(parseDate("2014-10-06T23:32:33Z"),
-		// parseDate("2014-10-08T23:32:33Z"));
-		// System.out.println("Tasks Opened:" + tasksRange.getValue1() +
-		// "\nTasks Closed:" + tasksRange.getValue2());
-		//
-		// Pair<Integer, Integer> tasksDate =
-		// parseByDate(parseDate("2015-02-24T00:32:27Z"));
-		// System.out.println("\nTasks Opened:" + tasksDate.getValue1() +
-		// "\nTasks Closed:" + tasksDate.getValue2());
-		//
-		// System.out.println("Most Recent Name for instanceId 557 is:" +
-		// recentTasks.get(557).getValue1()
-		// + "\nThe number of tasks for instanceId 557 is:" +
-		// recentTasks.get(557).getValue2());
-		//
-		// System.out.println("Assignee: Impact 2014 \nOpen Tasks:" +
-		// tasksByAssignee.get("Impact 2014").getValue1()
-		// + "\nClosed Tasks:" + tasksByAssignee.get("Impact
-		// 2014").getValue2());
+		userInputLoop();
+		
 
+	}
+	
+	private static void userInputLoop(){
+		boolean stop = false;
+		String data;
+		while(!stop){
+			String input = getInput(
+					"Options:\nEnter 1 to search for the most recent task for an instanceId"
+					+ "\nEnter 2 to get the count of tasks for a particular instanceId"
+					+ "\nEnter 3 to get the count of opened and closed tasks for a particular assignee"
+					+ "\nEnter 4 to get the number of opened and closed tasks on a specific date"
+					+ "\nEnter 5 to get the number of opened and closed tasks from a specific start and end date"
+					+ "\nEnter q to exit");
+			if(input.equals("")){
+				System.out.println("Sorry, could you please enter one of the options above.");
+			}else if(input.equals("1")){
+				// Most Recent Task for an InstanceId
+				data = getInput("Option 1: Please Enter the InstanceId");
+				if(!data.equals("")){
+					System.out.println(mostRecentTaskByInstanceId(Integer.valueOf(data)) +"\n");
+				}else{
+					System.out.println("Sorry, could you please enter one of the options above.");
+				}
+			}else if(input.equals("2")){
+				// Count of tasks for an InstanceId
+				data = getInput("Option 2: Please Enter the InstanceId");
+				if(!data.equals("")){
+					System.out.println(countTasksByInstanceId(Integer.valueOf(data)) + " Tasks \n");
+				}else{
+					System.out.println("Sorry, could you please enter one of the options above.");
+				}
+			}else if(input.equals("3")){
+				// Count of opened and closed tasks for an assignee
+				data = getInput("Option 3: Please Enter the Assignee");
+				if(!data.equals("")){
+					Pair<Integer, Integer> out= countTasksByAssignee(data);
+					System.out.println("Opened Tasks: " + out.getValue1() + "\nClosed Tasks: " + out.getValue2());
+				}else{
+					System.out.println("Sorry, could you please enter one of the options above.");
+				}
+			}else if(input.equals("4")){
+				// Count of opened and closed tasks on a specific date
+				data = getInput("Option 4: Please Enter a specific date in the format of YYYY:MM:DD:HR:MM:SS");
+				if(!data.equals("")){
+					Calendar date = createDate(data);
+					Pair<Integer, Integer> out = parseByDate(date);
+					System.out.println("Opened Tasks: " + out.getValue1() + "\nClosed Tasks: " + out.getValue2());
+				}else{
+					System.out.println("Sorry, could you please enter one of the options above.");
+				}
+			}else if(input.equals("5")){
+				// Count of opened and closed tasks in a specific range
+				data = getInput("Option 5: Please Enter a specific date in the format of YYYY:MM:DD-HR:MM:SS,YYYY:MM:DD-HR:MM:SS");
+				if(!data.equals("")){
+					String[] arr = data.split(",");
+					Calendar start = createDate(arr[0]);
+					Calendar end = createDate(arr[1]);
+					Pair<Integer, Integer> out = parseByDate(start, end);
+					System.out.println("Opened Tasks: " + out.getValue1() + "\nClosed Tasks: " + out.getValue2());
+				}else{
+					System.out.println("Sorry, could you please enter one of the options above.");
+				}
+			}else if(input.equals("q") || input.equals("Q")){
+				System.out.print("Finished!");
+				return;
+			}
+		}
+	}
+
+	/**
+	 * Helper method that takes a properly formated string input and returns a calendar object.
+	 * 
+	 * @param date
+	 * @return
+	 */
+	private static Calendar createDate(String date){
+		Calendar cal = Calendar.getInstance();
+		String[] arr = date.split(":");
+		cal.set(Integer.valueOf(arr[0]), Integer.valueOf(arr[1]), Integer.valueOf(arr[2]), Integer.valueOf(arr[3]), Integer.valueOf(arr[4]), Integer.valueOf(arr[5]));
+		
+		return cal;
+	}
+	
+	/**
+	 * Prompts for user input using the given prompt.
+	 * 
+	 * @param prompt
+	 * @return user input
+	 */
+	private static String getInput(String prompt) {
+		String mInput = "";
+		try {
+			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+			System.out.println(prompt);
+			mInput = in.readLine();
+		} catch (IOException e) {
+			System.err.println("Error getting user input.");
+			e.printStackTrace();
+		}
+		return mInput;
 	}
 
 	/**
@@ -133,6 +217,7 @@ public class Main {
 	public static Pair<Integer, Integer> parseByDate(Calendar target) {
 		int opened = 0;
 		int closed = 0;
+
 		JsonNode nodes = readFile(Main.filePath);
 
 		for (JsonNode node : nodes) {
@@ -236,9 +321,9 @@ public class Main {
 	}
 
 	/**
-	 * Generic pair of values.
+	 * A generic pair of values used to return multiple values.
 	 * 
-	 * @author schmitml
+	 * @author Marc Schmitt
 	 *
 	 * @param <T>
 	 * @param <E>
@@ -273,69 +358,4 @@ public class Main {
 			this.value2 = val2;
 		}
 	}
-
-	// /**
-	// * Represents a JSON Task.
-	// *
-	// * @author Marc Schmitt
-	// *
-	// */
-	// public static class Task {
-	// private String instanceName;
-	// private String dueDate;
-	// private String priority;
-	// private String closeDate;
-	// private boolean instanceStatus;
-	// private String assigneeType;
-	// private String createDate;
-	// private String name;
-	// private String url;
-	// private String assignee;
-	// private int instanceId;
-	// private String status;
-	// private String variables;
-	// private String processName;
-	// private int id;
-	//
-	// public Task(JsonNode node) {
-	// this(node.get("instanceName").asText(), node.get("dueDate").asText(),
-	// node.get("priority").asText(),
-	// node.get("closeDate").asText(), node.get("instanceStatus").asBoolean(),
-	// node.get("assigneeType").asText(), node.get("createDate").asText(),
-	// node.get("name").asText(),
-	// node.get("url").asText(), node.get("assignee").asText(),
-	// node.get("instanceId").asInt(),
-	// node.get("status").asText(), "STATUS", node.get("processName").asText(),
-	// node.get("id").asInt());
-	// }
-	//
-	// public Task(String instanceName, String dueDate, String priority, String
-	// closeDate, boolean instanceStatus,
-	// String assigneeType, String createDate, String name, String url, String
-	// assignee, int instanceId,
-	// String status, String variables, String processName, int id) {
-	//
-	// this.instanceName = instanceName;
-	// this.dueDate = dueDate;
-	// this.priority = priority;
-	// this.closeDate = closeDate;
-	// this.instanceStatus = instanceStatus;
-	// this.assigneeType = assigneeType;
-	// this.createDate = createDate;
-	// this.name = name;
-	// this.url = url;
-	// this.assignee = assignee;
-	// this.instanceId = instanceId;
-	// this.status = status;
-	// this.variables = variables;
-	// this.processName = processName;
-	// this.id = id;
-	// }
-	//
-	// @Override
-	// public String toString() {
-	// return this.instanceName;
-	// }
-	//
-	// }
 }
