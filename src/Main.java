@@ -8,6 +8,12 @@ import java.util.HashMap;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * Solution to Code Challenge for BP3.
+ * 
+ * @author Marc Schmitt(Marc.L.Schmitt@me.com)
+ *
+ */
 public class Main {
 	private static final String filePath = "task-2.json";
 	private static HashMap<Integer, Pair<String, Integer>> recentTasks;
@@ -18,110 +24,79 @@ public class Main {
 		recentTasks = new HashMap<>();
 		tasksByAssignee = new HashMap<>();
 		parseJson();
-
 		userInputLoop();
-		
 
 	}
-	
-	private static void userInputLoop(){
+
+	/**
+	 * An input loop that allows the user to query the input for specific data.
+	 * 
+	 */
+	private static void userInputLoop() {
 		boolean stop = false;
 		String data;
-		while(!stop){
-			String input = getInput(
-					"Options:\nEnter 1 to search for the most recent task for an instanceId"
+		while (!stop) {
+			String input = getInput("Options:\nEnter 1 to search for the most recent task for an instanceId"
 					+ "\nEnter 2 to get the count of tasks for a particular instanceId"
 					+ "\nEnter 3 to get the count of opened and closed tasks for a particular assignee"
 					+ "\nEnter 4 to get the number of opened and closed tasks on a specific date"
 					+ "\nEnter 5 to get the number of opened and closed tasks from a specific start and end date"
 					+ "\nEnter q to exit");
-			if(input.equals("")){
+			if (input.equals("")) {
 				System.out.println("Sorry, could you please enter one of the options above.");
-			}else if(input.equals("1")){
+			} else if (input.equals("1")) {
 				// Most Recent Task for an InstanceId
 				data = getInput("Option 1: Please Enter the InstanceId");
-				if(!data.equals("")){
-					System.out.println(mostRecentTaskByInstanceId(Integer.valueOf(data)) +"\n");
-				}else{
+				if (!data.equals("")) {
+					System.out.println(mostRecentTaskByInstanceId(Integer.valueOf(data)) + "\n");
+				} else {
 					System.out.println("Sorry, could you please enter one of the options above.");
 				}
-			}else if(input.equals("2")){
+			} else if (input.equals("2")) {
 				// Count of tasks for an InstanceId
 				data = getInput("Option 2: Please Enter the InstanceId");
-				if(!data.equals("")){
+				if (!data.equals("")) {
 					System.out.println(countTasksByInstanceId(Integer.valueOf(data)) + " Tasks \n");
-				}else{
+				} else {
 					System.out.println("Sorry, could you please enter one of the options above.");
 				}
-			}else if(input.equals("3")){
+			} else if (input.equals("3")) {
 				// Count of opened and closed tasks for an assignee
 				data = getInput("Option 3: Please Enter the Assignee");
-				if(!data.equals("")){
-					Pair<Integer, Integer> out= countTasksByAssignee(data);
+				if (!data.equals("")) {
+					Pair<Integer, Integer> out = countTasksByAssignee(data);
 					System.out.println("Opened Tasks: " + out.getValue1() + "\nClosed Tasks: " + out.getValue2());
-				}else{
+				} else {
 					System.out.println("Sorry, could you please enter one of the options above.");
 				}
-			}else if(input.equals("4")){
+			} else if (input.equals("4")) {
 				// Count of opened and closed tasks on a specific date
 				data = getInput("Option 4: Please Enter a specific date in the format of YYYY:MM:DD:HR:MM:SS");
-				if(!data.equals("")){
+				if (!data.equals("")) {
 					Calendar date = createDate(data);
 					Pair<Integer, Integer> out = parseByDate(date);
 					System.out.println("Opened Tasks: " + out.getValue1() + "\nClosed Tasks: " + out.getValue2());
-				}else{
+				} else {
 					System.out.println("Sorry, could you please enter one of the options above.");
 				}
-			}else if(input.equals("5")){
+			} else if (input.equals("5")) {
 				// Count of opened and closed tasks in a specific range
-				data = getInput("Option 5: Please Enter a specific date in the format of YYYY:MM:DD-HR:MM:SS,YYYY:MM:DD-HR:MM:SS");
-				if(!data.equals("")){
+				data = getInput(
+						"Option 5: Please Enter a specific date in the format of YYYY:MM:DD-HR:MM:SS,YYYY:MM:DD-HR:MM:SS");
+				if (!data.equals("")) {
 					String[] arr = data.split(",");
 					Calendar start = createDate(arr[0]);
 					Calendar end = createDate(arr[1]);
 					Pair<Integer, Integer> out = parseByDate(start, end);
 					System.out.println("Opened Tasks: " + out.getValue1() + "\nClosed Tasks: " + out.getValue2());
-				}else{
+				} else {
 					System.out.println("Sorry, could you please enter one of the options above.");
 				}
-			}else if(input.equals("q") || input.equals("Q")){
+			} else if (input.equals("q") || input.equals("Q")) {
 				System.out.print("Finished!");
 				return;
 			}
 		}
-	}
-
-	/**
-	 * Helper method that takes a properly formated string input and returns a calendar object.
-	 * 
-	 * @param date
-	 * @return
-	 */
-	private static Calendar createDate(String date){
-		Calendar cal = Calendar.getInstance();
-		String[] arr = date.split(":");
-		cal.set(Integer.valueOf(arr[0]), Integer.valueOf(arr[1]), Integer.valueOf(arr[2]), Integer.valueOf(arr[3]), Integer.valueOf(arr[4]), Integer.valueOf(arr[5]));
-		
-		return cal;
-	}
-	
-	/**
-	 * Prompts for user input using the given prompt.
-	 * 
-	 * @param prompt
-	 * @return user input
-	 */
-	private static String getInput(String prompt) {
-		String mInput = "";
-		try {
-			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-			System.out.println(prompt);
-			mInput = in.readLine();
-		} catch (IOException e) {
-			System.err.println("Error getting user input.");
-			e.printStackTrace();
-		}
-		return mInput;
 	}
 
 	/**
@@ -294,6 +269,41 @@ public class Main {
 		}
 
 		return nodes;
+	}
+
+	/**
+	 * A Helper method that prompts for user input using the given prompt.
+	 * 
+	 * @param prompt
+	 * @return user input
+	 */
+	private static String getInput(String prompt) {
+		String mInput = "";
+		try {
+			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+			System.out.println(prompt);
+			mInput = in.readLine();
+		} catch (IOException e) {
+			System.err.println("Error getting user input.");
+			e.printStackTrace();
+		}
+		return mInput;
+	}
+
+	/**
+	 * Helper method that takes a properly formated string input and returns a
+	 * calendar object.
+	 * 
+	 * @param date
+	 * @return
+	 */
+	private static Calendar createDate(String date) {
+		Calendar cal = Calendar.getInstance();
+		String[] arr = date.split(":");
+		cal.set(Integer.valueOf(arr[0]), Integer.valueOf(arr[1]), Integer.valueOf(arr[2]), Integer.valueOf(arr[3]),
+				Integer.valueOf(arr[4]), Integer.valueOf(arr[5]));
+
+		return cal;
 	}
 
 	/**
